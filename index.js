@@ -1,14 +1,15 @@
-﻿let net;
-const classifier = knnClassifier.create();
+﻿const classifier = knnClassifier.create();
+const classPrefix = 'class-'
 const webcamElement = document.getElementById('webcam');
-const buttons = new Array('class-a', 'class-b', 'class-c')
+let net;
+var classLabels = new Array();
 
 async function app() {
-  console.log('Loading mobilenet..');
+  document.getElementById('message').innerText = 'Loading mobilenet..';
 
   // Load the model.
   net = await mobilenet.load();
-  console.log('Sucessfully loaded model');
+  document.getElementById('message').innerText = 'Sucessfully loaded model';
 
   await setupWebcam();
 
@@ -25,19 +26,18 @@ async function app() {
     // Pass the intermediate activation to the classifier.
     classifier.addExample(activation, classId);
 
-    let buttonElement = document.getElementById(buttons[classId]);
+    let buttonElement = document.getElementById(classPrefix + classLabels[classId]);
     let spt = buttonElement.innerText.split(splitStr)
-    buttonElement.innerText =
-      spt[0] + splitStr +
-      (
-        (spt[1]) == undefined ? 1 : parseInt((spt[1]).trim()) + 1
-      );
+    buttonElement.innerText = spt[0] + splitStr + ((spt[1]) == undefined ? 1 : parseInt((spt[1]).trim()) + 1);
   };
 
-  // When clicking a button, add an example for that class.
-  document.getElementById(buttons[0]).addEventListener('click', () => addExample(0));
-  document.getElementById(buttons[1]).addEventListener('click', () => addExample(1));
-  document.getElementById(buttons[2]).addEventListener('click', () => addExample(2));
+  // When clicking a button, add a class.
+  document.getElementById('add-class-button').addEventListener('click', () => {
+    let lab = document.getElementById('class-name').value;
+    document.getElementById('buttons').innerHTML += ' <button id="' + classPrefix + +lab + '">Add ' + lab + '</button>';
+    classLabels.push(lab);
+    document.getElementById('class-' + lab).addEventListener('click', () => addExample(classLabels.length - 1));
+  });
 
   while (true) {
     if (classifier.getNumClasses() > 0) {
@@ -46,9 +46,8 @@ async function app() {
       // Get the most likely class and confidences from the classifier module.
       const result = await classifier.predictClass(activation);
 
-      const classes = ['A', 'B', 'C'];
       document.getElementById('console').innerText = `
-        prediction: ${classes[result.classIndex]}\t
+        prediction: ${classLabels[result.classIndex]}\t
         probability: ${result.confidences[result.classIndex]}
       `;
     }
