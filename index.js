@@ -1,4 +1,6 @@
-﻿const classifier = knnClassifier.create();
+﻿// Copyright (c) 2019 YA-androidapp(https://github.com/YA-androidapp) All rights reserved.
+
+const classifier = knnClassifier.create();
 const classPrefix = 'class-'
 const webcamElement = document.getElementById('webcam');
 let net;
